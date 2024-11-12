@@ -7,6 +7,9 @@ const darkModeToggle = document.getElementById('dark-mode-toggle');
 const progressBar = document.getElementById('progress-bar');
 
 let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+let streakCount = parseInt(localStorage.getItem('streakCount')) || 0;
+let lastCompletionDate = localStorage.getItem('lastCompletionDate') || null;
+let currentFilter = 'all'; // Default filter
 
 const addSound = new Audio('add.mp3');
 const deleteSound = new Audio('delete.mp3');
@@ -14,9 +17,23 @@ const completeSound = new Audio('complete.mp3');
 
 function renderTasks() {
     taskList.innerHTML = '';
-    tasks.forEach((task, index) => {
+
+    const filteredTasks = tasks.filter(task => {
+        if (currentFilter === 'active') return !task.completed;
+        if (currentFilter === 'completed') return task.completed;
+        return true; // for 'all' filter
+    });
+
+    filteredTasks.sort((a, b) => {
+        const priorityOrder = { high: 3, medium: 2, low: 1 };
+        return priorityOrder[b.priority] - priorityOrder[a.priority];
+    });
+
+    filteredTasks.forEach((task, index) => {
         const taskItem = document.createElement('li');
-        taskItem.className = `task ${task.completed ? 'completed' : ''}`;
+        taskItem.className = `task ${task.completed ? 'completed' : ''} ${task.priority}`;
+        taskItem.draggable = true;
+
         taskItem.innerHTML = `
             <span onclick="toggleTask(${index})">
                 ${task.name} 
@@ -25,6 +42,11 @@ function renderTasks() {
             </span>
             <button onclick="deleteTask(${index})">x</button>
         `;
+
+        taskItem.addEventListener('dragstart', (e) => onDragStart(e, index));
+        taskItem.addEventListener('dragover', (e) => onDragOver(e));
+        taskItem.addEventListener('drop', (e) => onDrop(e, index));
+
         taskList.appendChild(taskItem);
     });
     updateProgressBar();
@@ -35,33 +57,27 @@ function addTask() {
     const taskText = taskInput.value.trim();
     const taskCategory = document.getElementById('task-category').value;
     const dueDate = document.getElementById('task-due-date').value;
+    const priority = document.getElementById('task-priority').value;
+
     if (taskText) {
-        tasks.push({ name: taskText, category: taskCategory, dueDate: dueDate, completed: false });
+        tasks.push({ name: taskText, category: taskCategory, dueDate: dueDate, priority: priority, completed: false });
         taskInput.value = '';
         renderTasks();
         addSound.play();
     }
 }
 
-function deleteTask(index) {
-    tasks.splice(index, 1);
-    renderTasks();
-    deleteSound.play();
-}
-
 function toggleTask(index) {
     tasks[index].completed = !tasks[index].completed;
+    updateStreak();
     renderTasks();
     completeSound.play();
 }
 
-function filterTasks(filter) {
-    tasks.forEach((task, index) => {
-        const taskItem = taskList.children[index];
-        taskItem.style.display = (filter === 'all') ||
-                                 (filter === 'completed' && task.completed) ||
-                                 (filter === 'active' && !task.completed) ? 'flex' : 'none';
-    });
+function deleteTask(index) {
+    tasks.splice(index, 1);
+    renderTasks();
+    deleteSound.play();
 }
 
 function clearCompletedTasks() {
@@ -71,37 +87,61 @@ function clearCompletedTasks() {
 
 function updateProgressBar() {
     const completedTasks = tasks.filter(task => task.completed).length;
-    const progress = (completedTasks / tasks.length) * 100;
+    const progress = tasks.length ? (completedTasks / tasks.length) * 100 : 0;
     progressBar.style.width = `${progress}%`;
+}
+
+function updateStreak() {
+    const today = new Date().toISOString().slice(0, 10);
+    if (tasks.every(task => task.completed) && lastCompletionDate !== today) {
+        streakCount++;
+        lastCompletionDate = today;
+    }
+    localStorage.setItem('streakCount', streakCount);
+    localStorage.setItem('lastCompletionDate', lastCompletionDate);
+    document.getElementById('streak-count').textContent = streakCount;
 }
 
 function saveTasks() {
     localStorage.setItem('tasks', JSON.stringify(tasks));
 }
 
-function checkDueTasks() {
-    const currentTime = new Date().toISOString();
-    tasks.forEach(task => {
-        if (task.dueDate && task.dueDate < currentTime && !task.completed) {
-            alert(`Task "${task.name}" is due now!`);
-        }
-    });
+function setDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
 }
 
-addTaskBtn.addEventListener('click', addTask);
-taskInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') addTask();
-});
+function onDragStart(event, index) {
+    event.dataTransfer.setData('taskIndex', index);
+}
 
+function onDragOver(event) {
+    event.preventDefault();
+}
+
+function onDrop(event, index) {
+    event.preventDefault();
+    const draggedIndex = event.dataTransfer.getData('taskIndex');
+    const draggedTask = tasks.splice(draggedIndex, 1)[0];
+    tasks.splice(index, 0, draggedTask);
+    renderTasks();
+}
+
+// Event listeners for filter buttons
 filterButtons.forEach(button => {
-    button.addEventListener('click', () => filterTasks(button.id.replace('filter-', '')));
+    button.addEventListener('click', () => {
+        currentFilter = button.id.replace('filter-', '');
+        renderTasks();
+    });
 });
 
+addTaskBtn.addEventListener('click', addTask);
 clearCompletedBtn.addEventListener('click', clearCompletedTasks);
+darkModeToggle.addEventListener('click', setDarkMode);
 
-darkModeToggle.addEventListener('click', () => {
-    document.body.classList.toggle('dark-mode');
-});
-
+// Initial render and dark mode setting
 renderTasks();
-setInterval(checkDueTasks, 60000);
+
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+}
