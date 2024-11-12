@@ -9,29 +9,44 @@
 <body>
     <div class="todo-container">
         <h1>My To-Do List</h1>
-        <button id="dark-mode-toggle">Dark Mode</button>
+        <button id="dark-mode-toggle">Toggle Dark Mode</button>
         
+        <!-- New Task Input Section -->
         <input type="text" id="new-task-input" placeholder="Enter a new task">
         <select id="task-category">
             <option value="work">Work</option>
             <option value="personal">Personal</option>
             <option value="urgent">Urgent</option>
         </select>
+        <select id="task-priority">
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
+        </select>
         <input type="datetime-local" id="task-due-date">
         <button id="add-task-btn">Add Task</button>
+
+        <!-- Goals and Streak Tracking -->
+        <div class="goal-section">
+            <h3>Set Daily/Weekly Goals</h3>
+            <input type="number" id="daily-goal" placeholder="Daily Goal">
+            <input type="number" id="weekly-goal" placeholder="Weekly Goal">
+            <button id="set-goals-btn">Set Goals</button>
+            <p id="streak-display">Current Streak: <span id="streak-count">0</span> days</p>
+        </div>
         
         <div class="progress-bar-container">
             <div id="progress-bar"></div>
         </div>
         
         <ul id="task-list"></ul>
-        
+
         <div class="task-filters">
             <button id="filter-all">All</button>
             <button id="filter-active">Active</button>
             <button id="filter-completed">Completed</button>
         </div>
-        
+
         <button id="clear-completed">Clear Completed</button>
     </div>
     
