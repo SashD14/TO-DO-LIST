@@ -10,7 +10,7 @@ body {
 }
 
 .todo-container {
-    width: 300px;
+    width: 320px;
     background: darkcyan;
     padding: 50px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
@@ -22,13 +22,13 @@ h1 {
     color: #333;
 }
 
-#new-task-input, #task-category, #task-due-date, #add-task-btn {
+#new-task-input, #task-category, #task-priority, #task-due-date, #add-task-btn, #daily-goal, #weekly-goal, #set-goals-btn {
     width: 100%;
     padding: 10px;
     margin: 5px 0;
 }
 
-#add-task-btn {
+#add-task-btn, #set-goals-btn {
     background-color: #28a745;
     color: white;
     border: none;
@@ -47,6 +47,7 @@ h1 {
     padding: 10px;
     border-bottom: 1px solid #eee;
     transition: all 0.3s ease;
+    cursor: grab;
 }
 
 .task.completed {
@@ -61,6 +62,11 @@ h1 {
     cursor: pointer;
 }
 
+/* Priority Levels */
+.high { border-left: 4px solid #dc3545; }
+.medium { border-left: 4px solid #ffc107; }
+.low { border-left: 4px solid #28a745; }
+
 /* Dark mode */
 body.dark-mode {
     background-color: #333;
@@ -68,7 +74,7 @@ body.dark-mode {
 }
 
 .dark-mode .todo-container {
-    background-color: #3a7868;
+    background-color: #3a705c;
 }
 
 .dark-mode #add-task-btn {
@@ -91,16 +97,3 @@ body.dark-mode {
     border-radius: 5px;
     transition: width 0.3s;
 }
-
-/* Task tags */
-.tag {
-    padding: 2px 5px;
-    margin-left: 5px;
-    font-size: 12px;
-    border-radius: 3px;
-    color: white;
-}
-
-.tag.work { background-color: #007bff; }
-.tag.personal { background-color: #28a745; }
-.tag.urgent { background-color: #dc3545; }
